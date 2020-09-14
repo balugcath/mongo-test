@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  mongo:
+    image: "mongo"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: toor
+      MONGO_INITDB_ROOT_PASSWORD: toor
+    network_mode: host
+    restart: always
+  mongo-test-1:
+    image: balugcath/mongo-test
+    network_mode: "host"
+    environment:
+      PRODUCT_PRICE_MONGO_URI: "mongodb://toor:toor@localhost:27017"
+      PRODUCT_PRICE_LISTEN: ":5005"
+      PRODUCT_PRICE_COLLECTION: "test1"
+      PRODUCT_PRICE_DATABASE: "test1"
+    depends_on:
+      - mongo
+    restart: always
+  mongo-test-2:
+    image: balugcath/mongo-test
+    network_mode: "host"
+    environment:
+      PRODUCT_PRICE_MONGO_URI: "mongodb://toor:toor@localhost:27017"
+      PRODUCT_PRICE_LISTEN: ":5006"
+      PRODUCT_PRICE_COLLECTION: "test1"
+      PRODUCT_PRICE_DATABASE: "test1"
+    depends_on:
+      - mongo
+    restart: always
+  nginx:
+    network_mode: "host"
+    image: nginx
+    volumes:
+      - ../configs/nginx:/etc/nginx/conf.d
+      - /tmp:/etc/nginx/logs
+    depends_on:
+      - mongo
+      - mongo-test-2
+      - mongo-test-1

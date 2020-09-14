@@ -1,0 +1,46 @@
+kind: pipeline
+name: default
+
+steps:
+- name: build
+  image: golang:alpine
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  commands:
+    - apk add --no-cache protoc git curl protobuf-dev
+    - go get github.com/golang/protobuf/protoc-gen-go
+    - protoc --go_opt=paths=source_relative --go_out=plugins=grpc:. api/*.proto
+    - go build ./cmd/product_price/...
+    - go test -tags integration_test -short -coverprofile coverage.txt ./...
+  network_mode: host
+
+- name: coverage
+  image: plugins/codecov
+  settings:
+    token:
+      from_secret: codecov_token
+    files:
+    - coverage.txt
+
+- name: publish docker
+  image: plugins/docker
+  settings:
+    repo: balugcath/mongo-test
+    tag: latest
+    username: balugcath
+    password:
+      from_secret: dockerhub_token
+    dockerfile: build/Dockerfile
+  when:
+    event:
+    - push
+    - tag
+
+services:
+- name: mongo
+  image: mongo:latest
+  environment:
+    MONGO_INITDB_ROOT_USERNAME: root
+    MONGO_INITDB_ROOT_PASSWORD: root
+  network_mode: host
