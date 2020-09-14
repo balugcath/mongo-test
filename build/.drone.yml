@@ -44,3 +44,4 @@ services:
     MONGO_INITDB_ROOT_USERNAME: root
     MONGO_INITDB_ROOT_PASSWORD: root
   network_mode: host
+
