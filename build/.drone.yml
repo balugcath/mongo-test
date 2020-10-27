@@ -22,7 +22,10 @@ steps:
       from_secret: codecov_token
     files:
     - coverage.txt
-
+  when:
+    branch:
+    - master
+    
 - name: publish docker
   image: plugins/docker
   settings:
@@ -33,6 +36,8 @@ steps:
       from_secret: dockerhub_token
     dockerfile: build/Dockerfile
   when:
+    branch:
+    - master
     event:
     - push
     - tag
@@ -44,4 +49,3 @@ services:
     MONGO_INITDB_ROOT_USERNAME: root
     MONGO_INITDB_ROOT_PASSWORD: root
   network_mode: host
-
